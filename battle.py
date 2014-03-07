@@ -1,5 +1,3 @@
-# Stats from http://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_base_stats_(Generation_VI-present)
-
 from pokemon import *
 from player import *
 from moves import *
@@ -23,8 +21,8 @@ class Battle(object):
 
     def fight(self):
 
-        p1 = self.player1.team[0]
-        p2 = self.player2.team[0]
+        p1 = self.get_first_healthy_pokemon(self.player1)
+        p2 = self.get_first_healthy_pokemon(self.player2)
 
         for p in self.player1.team + self.player2.team:
             p.battle_init()
@@ -97,21 +95,17 @@ class Battle(object):
                         p1.learn_moves_at_level()  
 
             if p2.current_hp == 0:
-                for p in self.player2.team:
-                    if p.current_hp:
-                        p2 = p
-                        self.gui.set_battlers(p1, p2)
-                        self.gui.draw_screen()
-                        self.gui.message(self.player2.name + " sent out " + p2.name + "!")
-                        break
+                p2 = self.get_first_healthy_pokemon(self.player2)
+                if p2:
+                    self.gui.set_battlers(p1, p2)
+                    self.gui.draw_screen()
+                    self.gui.message(self.player2.name + " sent out " + p2.name + "!")
             if p1.current_hp == 0:
-                for p in self.player1.team:
-                    if p.current_hp:
-                        p1 = p
-                        self.gui.set_battlers(p1, p2)
-                        self.gui.draw_screen()
-                        self.gui.message("Go, " + p1.name + "!")
-                        break
+                p1 = self.get_first_healthy_pokemon(self.player1)
+                if p1:
+                    self.gui.set_battlers(p1, p2)
+                    self.gui.draw_screen()
+                    self.gui.message("Go, " + p1.name + "!")
 
             if self.player1.black_out():
                 self.gui.message(self.player1.name + " blacked out...")
@@ -119,6 +113,12 @@ class Battle(object):
             elif self.player2.black_out():
                 self.gui.message(self.player2.name + " was defeated!")
                 return True
+
+    def get_first_healthy_pokemon(self, player):
+        for p in player.team:
+            if p.current_hp:
+                return p
+        return None # spurious
 
     def handle_input(self, p1, blacked_out):
         while 1:
@@ -142,7 +142,9 @@ class Battle(object):
 
 
     def check_pp(self, move):
-        if move and move[1] == 0:
+        if not move:
+            return False
+        elif move[1] == 0:
             self.gui.message("That move has no PP left!")
             self.gui.draw_screen()
             return False

@@ -19,6 +19,10 @@ class Game(object):
 
     def __init__(self):
 
+        self.game_logic()
+
+    def game_logic(self):
+
         pygame.init()
         self.screen = pygame.display.set_mode((gui.SCREEN_WIDTH, gui.SCREEN_HEIGHT), pygame.SRCALPHA)
         pygame.display.set_caption('Pokemon')
@@ -28,7 +32,7 @@ class Game(object):
         self.player.name = "You"
         img,_ = gui.load_image(os.path.join("Graphics","Characters","trchar071.png"), -1)
         self.player.image = img
-        ours = Pokemon(32, "GYARADOS")#1, "SQUIRTLE")
+        ours = Pokemon(1, "SQUIRTLE")
         self.player.add_to_team(ours)
         ours2 = Pokemon(1, "CHARMANDER")
         self.player.add_to_team(ours2)
@@ -120,6 +124,7 @@ class Game(object):
                             p.full_heal()
                     elif type(action) == tuple and action[0] == "BATTLE":
                         wild = Player() # TODO: move this to init
+                        wild.name = "Wild pokemon"
                         wild_pokemon = Pokemon(action[2], action[1])
                         wild.add_to_team(wild_pokemon)
                         b = battle.Battle(self.screen, self.player, wild, self.clock, self.cmap.type) 
