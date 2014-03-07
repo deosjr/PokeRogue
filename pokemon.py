@@ -2,7 +2,6 @@
 import random
 import platform
 from moves import *
-from mechanics import *
 
 STATS_FILE = "Data/pokemon.txt"
 XP_FILE = "Data/xp_lookup_table.txt"

@@ -3,7 +3,6 @@ from player import *
 from moves import *
 from pokemontypes import *
 import gui
-from mechanics import *
 
 import pygame
 from pygame.locals import *
@@ -23,6 +22,9 @@ class Battle(object):
 
         p1 = self.get_first_healthy_pokemon(self.player1)
         p2 = self.get_first_healthy_pokemon(self.player2)
+
+        if not p1:
+            return "You don't have any pokemon!"
 
         for p in self.player1.team + self.player2.team:
             p.battle_init()
@@ -109,10 +111,8 @@ class Battle(object):
 
             if self.player1.black_out():
                 self.gui.message(self.player1.name + " blacked out...")
-                return False
             elif self.player2.black_out():
                 self.gui.message(self.player2.name + " was defeated!")
-                return True
 
     def get_first_healthy_pokemon(self, player):
         for p in player.team:
@@ -197,6 +197,48 @@ class Battle(object):
             return True
         return False
 
+def determine_damage(source, target, move):
+
+    attack = source.attack
+    attack_stat = source.attack_stat
+    defense = target.defense
+    defense_stat = target.defense_stat
+    if move.category == "Special":
+        attack = source.spattack
+        attack_stat = source.spattack_stat
+        defense = target.spdefense
+        defense_stat = target.spdefense_stat
+
+    L = source.level
+    A = attack * stat_stage_to_mod(attack_stat)
+    D = defense * stat_stage_to_mod(defense_stat)
+    B = check_power(source, target, move)
+    STAB = 1
+    if move.type in source.species.types:
+        STAB = 1.5
+    T = effectiveness(move.type, target.species.types)
+    Crit = 1 # TODO
+    if B == 1:
+        return 0, Crit, T
+    other = 1 # TODO
+    rand = 1 - 0.15 * random.random()
+    Mod = STAB * T * Crit * other * rand
+    return int(max(1, round((((2.0 * L + 10.0) / 250.0) * (A/D) * B + 2.0) * Mod))), Crit, T
+
+def random_move(moves):
+
+    possible_moves = [(i,x) for i,x in enumerate(moves) if x and x[1] != 0]
+    # TODO: ENEMY POKEMON NEVER STRUGGLE
+    # import moves would be recursive!
+    #if not possible_moves:
+    #    return MOVES[INTERNAL_MOVES["STRUGGLE"] - 1]
+    return random.choice(possible_moves)
+
+def sort_by_speed(moves):
+    # TODO: same speed -> random
+    moves_by_user_speed = sorted(moves, key=lambda x:x[3], reverse=True)
+    moves_by_priority = sorted(moves_by_user_speed, key=lambda x:x[2].priority, reverse=True)
+    return moves_by_priority
 
 if __name__ == '__main__':
     if not len(sys.argv) == 5:

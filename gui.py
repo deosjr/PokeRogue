@@ -4,9 +4,6 @@ import pygame
 from pygame.locals import *
 import time
 
-# TODO remove
-import player
-
 FPS = 90
 GRIDN_X, GRIDN_Y = 16, 12
 CELL_WIDTH = 32 
@@ -16,6 +13,9 @@ SCREEN_HEIGHT =  CELL_HEIGHT * GRIDN_Y
 
 OFFSET_X = (GRIDN_X-1)/2
 OFFSET_Y = (GRIDN_Y-1)/2
+
+#TODO REMOVE:
+MOVETIMER = CELL_WIDTH
 
 ######################
 # Copypasta from: https://www.pygame.org/docs/tut/chimp/ChimpLineByLine.html
@@ -191,7 +191,7 @@ class WORLDGUI(GUI):
         
         # TODO: get this from player object 
         xf, yf = self.player.facing
-        timer = (player.MOVETIMER - self.player.movetimer)
+        timer = (MOVETIMER - self.player.movetimer)
         rx, ry = timer * xf, timer * yf
 
         bx = rx
@@ -235,7 +235,7 @@ class WORLDGUI(GUI):
         
         # TODO: get this from player object 
         xf, yf = self.player.facing
-        timer = (player.MOVETIMER-1 - self.player.movetimer)
+        timer = (MOVETIMER-1 - self.player.movetimer)
         rx, ry = timer * xf, timer * yf
 
         self.screen.blit(self.background, (0, 0))
@@ -244,7 +244,7 @@ class WORLDGUI(GUI):
         for npc in self.map.NPCs:
             if self.onscreen(npc): 
                 xf, yf = npc.facing
-                timer = (player.MOVETIMER - npc.movetimer)
+                timer = (MOVETIMER - npc.movetimer)
                 x = CELL_WIDTH * (npc.x - self.player.x + OFFSET_X) + rx - xf * timer
                 y = CELL_HEIGHT * (npc.y - self.player.y + OFFSET_Y) + ry - yf * timer
                 img, r, coordinates = npc.get_image(x, y)

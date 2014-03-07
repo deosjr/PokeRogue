@@ -2,8 +2,6 @@
 import random
 import math
 
-from mechanics import *
-
 STATS_FILE = 'Data/moves.txt'
 MOVES = []
 INTERNAL_MOVES = {}
@@ -281,7 +279,31 @@ def move_function(source, target, damage, t, miss, move, first):
     elif func == "06F" and t and not miss:
         target.take_damage(source.level * ((random.randint(0,100) + 50) / 100))
 
-    ## MISSING: 070 - 0C1
+    ## MISSING: 070 - 07A
+
+    elif func == "07B":
+        return messages
+    elif func == "07C":
+        return messages
+    elif func == "07D":
+        return messages
+    elif func == "07E":
+        return messages
+    elif func == "07F":
+        return messages
+    elif func == "080":
+        return messages
+
+    ## MISSING: 081 - 08A
+
+    elif func == "08B":
+        return messages
+    elif func == "08C":
+        return messages
+    elif func == "08D":
+        return messages
+
+    ## MISSING: 08E - 0C1
 
     elif func == "0C2" and not miss:
         source.add_status("RECHARGE")
@@ -360,6 +382,75 @@ def move_function(source, target, damage, t, miss, move, first):
         messages.append("This move hasn't been implemented yet!")
 
     return messages
+
+def check_power(source, target, move):
+    # TODO: power-affected moves
+    func, power = move.function, move.power
+    if func == "07B":
+        if target.check_status("PSN"):
+            power *= 2.0
+    elif func == "07C":
+        if target.check_status("PAR"):
+            power *= 2.0
+            target.non_volatile_status = None
+    elif func == "07D":
+        if target.check_status("SLP"):
+            power *= 2.0
+            target.non_volatile_status = None
+    elif func == "07E":
+        if source.check_status("PSN") or source.check_status("BRN") or source.check_status("PAR"):
+            power *= 2.0
+    elif func == "07F":
+        if target.non_volatile_status:
+            power *= 2.0
+    elif func == "080":
+        if target.current_hp <= target.hp / 2.0:
+            power *= 2.0
+    elif func == "08B":
+        power = math.floor((source.current_hp / source.hp) * 150.0)
+    elif func == "08C":
+        power = math.floor((source.current_hp / source.hp) * 120.0)
+    elif func == "08D":
+        power = min(math.floor((target.speed / source.speed) * 25.0), 150.0)
+    return power
+
+def incr_stage(SM, amount):
+    if SM == 6:
+        return 6, " won't go any higher!"
+    sharply = ""
+    if amount > 1:
+        sharply = " sharply"
+    return min(6, SM + amount), (sharply + " rose!")
+
+def decr_stage(SM, amount):
+    sharply = ""
+    if amount > 1:
+        sharply = " sharply"
+    return max(-6, SM - amount), (sharply + " fell!")
+
+def stat_msg(pokemon, stat, msg):
+    return pokemon.name + "'s " + stat + msg
+
+def stat_change(pokemon, stat, change, n):
+        old_stat = getattr(pokemon, stat)
+        new_stage, msg = eval(change + "_stage(" + str(old_stat) + "," + str(n) + ")")
+        setattr(pokemon, stat, new_stage)
+        return stat_msg(pokemon, stat.rstrip("_stat"), msg)
+
+def acc_stage_to_mod(SM):
+    if SM >= 0:
+        return ((SM + 3) * 100) / 3.0
+    return 300 / float(3 - SM)
+
+def stat_stage_to_mod(SM):
+    if SM >= 0:
+        return SM * 0.5 + 1.0
+    return 1/ float((-SM * 0.5) + 1.0)
+
+def swap_stats(source, target, stat):
+    temp = getattr(source, stat)
+    setattr(source, stat, getattr(target, stat))
+    setattr(source, stat, temp)
 
 def load_stats(filename):
 

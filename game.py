@@ -1,10 +1,10 @@
+import gui
+import battle
+
 from pokemon import *
 from player import *
 from moves import *
 from pokemontypes import *
-import gui
-import battle
-from mechanics import *
 from worldmap import *
 from loadmap import *
 
@@ -32,13 +32,14 @@ class Game(object):
         self.player.name = "You"
         img,_ = gui.load_image(os.path.join("Graphics","Characters","trchar071.png"), -1)
         self.player.image = img
+        """
         ours = Pokemon(1, "SQUIRTLE")
         self.player.add_to_team(ours)
         ours2 = Pokemon(1, "CHARMANDER")
         self.player.add_to_team(ours2)
         ours3 = Pokemon(15, "BULBASAUR")
         self.player.add_to_team(ours3)
-
+        """
         self.maps = {}
         (x,y), self.cmap = self.load_map(1)
         self.player.x, self.player.y = x, y
@@ -88,7 +89,7 @@ class Game(object):
 
                     self.mapgui.message(npc.attack_dialogue)
                     b = battle.Battle(self.screen, self.player, npc, self.clock, self.cmap.type) 
-                    b.fight()
+                    self.mapgui.message(b.fight())
 
                 else:
 
@@ -128,7 +129,7 @@ class Game(object):
                         wild_pokemon = Pokemon(action[2], action[1])
                         wild.add_to_team(wild_pokemon)
                         b = battle.Battle(self.screen, self.player, wild, self.clock, self.cmap.type) 
-                        b.fight()
+                        self.mapgui.message(b.fight())
                     elif type(action) == tuple and action[0] == "WARP":
                         (x,y), self.cmap = self.load_map(action[1])
                         self.player.x, self.player.y = x, y
@@ -141,8 +142,8 @@ class Game(object):
             if keys[K_z] and self.player.movetimer == MOVETIMER - 1:
                 self.interact()
 
-            if self.player.black_out():
-                break
+            #if self.player.black_out():
+            #    break
 
             # Draw
             self.mapgui.draw_screen()
@@ -182,7 +183,7 @@ class Game(object):
 
                 if action == "BATTLE":
                     b = battle.Battle(self.screen, self.player, obj, self.clock, self.cmap.type) 
-                    b.fight()
+                    self.mapgui.message(b.fight())
 
                 elif action == "HEAL":
                     for p in self.player.team:
