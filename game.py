@@ -1,12 +1,11 @@
 import gui
 import battle
+import loadmap
+import worldmap
 
 from pokemon import *
 from player import *
 from moves import *
-from pokemontypes import *
-from worldmap import *
-from loadmap import *
 
 import pygame
 from pygame.locals import *
@@ -48,9 +47,6 @@ class Game(object):
         (x,y), self.cmap = self.load_map(1)
         self.player.x, self.player.y = x, y
         self.mapgui = gui.WORLDGUI(self.screen, self.player, self.cmap)
-        #self.mapgui.map = self.cmap
-        #self.mapgui.init_background()
-        #self.mapgui.update_background()
         self.mapgui.draw_screen()
 
         self.clock = pygame.time.Clock()
@@ -111,13 +107,10 @@ class Game(object):
                         if self.move(direction):
                             # TODO: move this into player.py
                             self.player.movetimer = 0
-                            #self.mapgui.update_background()
                 
             else:
                 self.player.movetimer += 1
                 self.player.loop_animation()
-
-                #self.mapgui.update_background()
 
                 if self.player.movetimer == MOVETIMER - 1:
                     for tile in self.cmap.grid[(self.player.x, self.player.y)]:
@@ -138,10 +131,8 @@ class Game(object):
                         elif type(action) == tuple and action[0] == "WARP":
                             (x,y), self.cmap = self.load_map(action[1])
                             self.player.x, self.player.y = x, y
-                            self.mapgui = gui.WORLDGUI(self.screen, self.player)
-                            self.mapgui.map = self.cmap
+                            self.mapgui = gui.WORLDGUI(self.screen, self.player, self.cmap)
                             self.mapgui.init_background()
-                            #self.mapgui.update_background()
                             self.mapgui.draw_screen()
             
             if self.player.movetimer == MOVETIMER - 1:
@@ -181,7 +172,7 @@ class Game(object):
         x = self.player.x + tx
         y = self.player.y + ty
 
-        for obj in self.cmap.NPCs + [o for o in self.cmap.grid[(x,y)] if isinstance(o, MapObject)]:
+        for obj in self.cmap.NPCs + [o for o in self.cmap.grid[(x,y)] if isinstance(o, worldmap.MapObject)]:
             if obj.x == x and obj.y == y and hasattr(obj, "interact_with"):
                 if hasattr(obj, "facing"):
                     obj.facing = -1 * tx, -1 * ty
@@ -207,7 +198,7 @@ class Game(object):
     def load_map(self, identifier):
 
         if not identifier in self.maps:
-            self.maps[identifier] = load_map(identifier)
+            self.maps[identifier] = loadmap.load_map(identifier)
         return self.maps[identifier]        
             
 

@@ -85,6 +85,21 @@ class GUI(object):
                     break
             time.sleep(0.2)
 
+    def party_screen(self, player):
+        self.draw_screen()
+        message_box = pygame.Rect(2/16.0 * self.sx, 1.5/12.0 * self.sy, 12/16.0 * self.sx, 9/12.0 * self.sy)
+        pygame.draw.rect(self.screen, pygame.Color("WHITE"), message_box, 0)
+        pygame.display.flip()
+        for i, p in enumerate(player.team):
+            if not p:
+                break
+            stat = ""
+            if p.non_volatile_status:
+                stat = " (" + p.non_volatile_status[0] + ")"
+            text = "LVL." + str(p.level) + " " + p.name + stat + 5*" " + str(p.current_hp) + "/" + str(p.hp) 
+            self.draw_text(text, 2.5/16.0 * self.sx, (1.5*i + 2.0) / 12.0 * self.sy)
+            pygame.display.flip()
+
 
 class BATTLEGUI(GUI):
 
@@ -164,27 +179,58 @@ class BATTLEGUI(GUI):
             else:
                 self.draw_text(d[i] + ' -- ', x, y)
 
+    def do_you_want_to_switch(self, player):
+        if player.black_out():
+            return None
+        super(BATTLEGUI, self).party_screen(player)
+        i = 0
+        time.sleep(0.2)
+        while 1:
+            if pygame.event.get(pygame.QUIT): 
+                return
+            pygame.event.pump()
+
+            keys = pygame.key.get_pressed()
+            if keys[K_ESCAPE]:
+                break
+            elif keys[K_1]:
+                i = 1
+            elif keys[K_2]:
+                i = 2
+            elif keys[K_3]:
+                i = 3
+            elif keys[K_4]:
+                i = 4
+            elif keys[K_5]:
+                i = 5
+            elif keys[K_6]:
+                i = 6
+            if i:
+                if len(player.team) >= i and player.team[i-1].current_hp != 0:
+                    return player.team[i-1]
+                else:
+                    self.message("There is no will to fight..")
+                    i = 0
+                    super(BATTLEGUI, self).party_screen(player)
 
 class WORLDGUI(GUI):
 
     def __init__(self, screen, player, cmap):
         super(WORLDGUI, self).__init__(screen)
         self.player = player
-        #self.background = pygame.Surface(self.screen.get_size())
-        #self.background = self.background.convert()    
-        self.background_floor = pygame.Surface((self.sx + CELL_WIDTH, self.sy + CELL_HEIGHT))    
-        self.background_floor = self.background_floor.convert() 
+        self.background = pygame.Surface((self.sx + CELL_WIDTH, self.sy + CELL_HEIGHT))    
+        self.background = self.background.convert() 
         self.map = cmap
         self.init_background()
 
     def init_background(self):
-        self.background_floor.fill((255, 255, 255))
+        self.background.fill((255, 255, 255))
         for i in range(GRIDN_X + 1):
             for j in range(GRIDN_Y + 1): 
                 xp, yp = (i + self.player.x - OFFSET_X, j + self.player.y - OFFSET_Y)
                 x, y = i * CELL_WIDTH, j * CELL_HEIGHT
                 img, r, coordinates = self.map.floor.get_image(x, y, xp, yp)
-                self.background_floor.blit(img, r, coordinates)
+                self.background.blit(img, r, coordinates)
 
 
     # KEEP PLAYER AT (GRIDN_X-1)/2, (GRIDN_Y-1)/2
@@ -201,7 +247,7 @@ class WORLDGUI(GUI):
         if ry > 0:
             by = -(CELL_HEIGHT - ry)
 
-        self.screen.blit(self.background_floor, (bx, by))
+        self.screen.blit(self.background, (bx, by))
 
         for j in range(-1, GRIDN_Y + 1):
 
@@ -257,15 +303,7 @@ class WORLDGUI(GUI):
         return False 
 
     def party_screen(self):
-        self.draw_screen()
-        message_box = pygame.Rect(2/16.0 * self.sx, 1.5/12.0 * self.sy, 12/16.0 * self.sx, 9/12.0 * self.sy)
-        pygame.draw.rect(self.screen, pygame.Color("WHITE"), message_box, 0)
-        pygame.display.flip()
-        for i, p in enumerate(self.player.team):
-            if not p:
-                break
-            self.draw_text(p.name + " - LVL." + str(p.level), 2.5/16.0 * self.sx, (1.5*i + 2.0) / 12.0 * self.sy)
-            pygame.display.flip()
+        super(WORLDGUI, self).party_screen(self.player)
         numbers = set([])
         time.sleep(0.2)
         while 1:
@@ -295,6 +333,8 @@ class WORLDGUI(GUI):
                     temp = self.player.team[x]
                     self.player.team[x] = self.player.team[y]
                     self.player.team[y] = temp
+                    super(WORLDGUI, self).party_screen(self.player)
+                    time.sleep(0.2)
         time.sleep(0.2)
 
 

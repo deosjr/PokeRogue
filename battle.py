@@ -103,7 +103,7 @@ class Battle(object):
                     self.gui.draw_screen()
                     self.gui.message(self.player2.name + " sent out " + p2.name + "!")
             if p1.current_hp == 0:
-                p1 = self.get_first_healthy_pokemon(self.player1)
+                p1 = self.gui.do_you_want_to_switch(self.player1)
                 if p1:
                     self.gui.set_battlers(p1, p2)
                     self.gui.draw_screen()

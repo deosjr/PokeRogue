@@ -1,8 +1,7 @@
 
 import gui
 from player import *
-# to debug
-from pokemon import * # TODO REMOVE
+from pokemon import *
 from moves import *
 
 import pygame

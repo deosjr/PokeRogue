@@ -55,7 +55,8 @@ class Pokemon(object):
             self.name = self.species.name.upper()
         else:
             self.name = name
-        self.xp, _ = self.lookup_xp()
+        self.xp, next = self.lookup_xp()
+        self.nextxp = self.xp + next
         self.generate_iv()
         self.calculate()
         self.battle_init()
@@ -293,14 +294,14 @@ class Pokemon(object):
 
     def check_xp_level(self):
 
-        base, nextlevel = self.lookup_xp()
-
         if self.level == 100:
             return False
 
-        if self.xp >= base + nextlevel:
+        if self.xp >= self.nextxp:
 
             self.level += 1
+            if self.level != 100:
+                self.nextxp = sum(self.lookup_xp())
             return True
 
     def evolves(self):
