@@ -195,7 +195,6 @@ class Map(object):
 
         self.grid = {}
         self.NPCs = []
-        self.objects = []
         self.dont_draw = []
         self.map_to_grid(ascii_map)
 
@@ -205,22 +204,23 @@ class Map(object):
             for x, cell in enumerate(line): 
 
                 if cell == 'x' and hasattr(self, "wall"):
-                    self.grid[(x,y)] = self.wall 
+                    self.grid[(x,y)] = [self.wall]
                 elif cell == ' ' and hasattr(self, "floor"):
-                    self.grid[(x,y)] = self.floor 
+                    self.grid[(x,y)] = [self.floor] 
                 elif cell == '*':
                     if hasattr(self, "grass"):
-                        self.grid[(x,y)] = self.grass
+                        self.grid[(x,y)] = [self.grass]
                     else:
-                        self.grid[(x,y)] = self.floor
+                        self.grid[(x,y)] = [self.floor]
+                # might want to remove this.. statue is an object
                 elif cell == 's' and hasattr(self, "statue"):
-                    self.grid[(x,y)] = self.statue
+                    self.grid[(x,y)] = [self.statue]
                 elif cell == '#' and hasattr(self, "obstacle"):
-                    self.grid[(x,y)] = self.obstacle
+                    self.grid[(x,y)] = [self.obstacle]
                 elif cell == 'o':
                     trainer = Player(x, y)
                     trainer.range = 5
-                    self.grid[(x,y)] = self.floor
+                    self.grid[(x,y)] = [self.floor]
                     random_pokemon = Pokemon(5, random.choice(INTERNAL_POKEMON.keys()))
                     trainer.add_to_team(random_pokemon)
                     self.add_player(trainer)
@@ -228,18 +228,19 @@ class Map(object):
 
                 # Default: filler
                 elif hasattr(self, "filler"):
-                    self.grid[(x,y)] = self.filler
+                    self.grid[(x,y)] = [self.filler]
 
     def check_collisions(self, x, y):
 
         for npc in self.NPCs:
             if npc.x == x and npc.y == y:
                 return False
-        for obj in self.objects:
-            if obj.x == x and obj.y == y:
-                return obj.passable
         if (x,y) in self.grid:
-            return self.grid[(x, y)].passable
+            for tile in self.grid[(x,y)]:
+                if not tile.passable:
+                    return False
+            else:
+                return True
         return False
 
     def load_tileset(self, filename):
@@ -254,11 +255,12 @@ class Map(object):
 
             if isinstance(obj, MapObject):
                 obj = copy.copy(obj)
-                obj.x, obj.y = x, y
-                self.objects.append(obj)                
+                obj.x, obj.y = x, y    
 
-            elif isinstance(obj, MapTile):
-                self.grid[(x,y)] = obj
+            if not (x,y) in self.grid:
+                self.grid[(x,y)] = []         
+
+            self.grid[(x,y)].append(obj)
 
             w, h = obj.w, obj.h
             hmod, wmod = 0, 0
@@ -270,7 +272,7 @@ class Map(object):
                 for j in range(h-1):
                     if not (x + i - wmod, y + hmod - j) == (x, y):
                         if not y + hmod - j > y:
-                            self.grid[(x+i-wmod, y-j+hmod)] = self.filler
+                            self.grid[(x+i-wmod, y-j+hmod)] = [self.filler]
                         self.dont_draw.append((x + i-wmod, y + hmod - j))
             return obj
 

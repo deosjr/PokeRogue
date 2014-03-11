@@ -45,12 +45,12 @@ class Game(object):
         self.player.add_to_team(ours6)
         
         self.maps = {}
-        (x,y), self.cmap = self.load_map(0)
+        (x,y), self.cmap = self.load_map(1)
         self.player.x, self.player.y = x, y
-        self.mapgui = gui.WORLDGUI(self.screen, self.player)
-        self.mapgui.map = self.cmap
-        self.mapgui.init_background()
-        self.mapgui.update_background()
+        self.mapgui = gui.WORLDGUI(self.screen, self.player, self.cmap)
+        #self.mapgui.map = self.cmap
+        #self.mapgui.init_background()
+        #self.mapgui.update_background()
         self.mapgui.draw_screen()
 
         self.clock = pygame.time.Clock()
@@ -111,37 +111,38 @@ class Game(object):
                         if self.move(direction):
                             # TODO: move this into player.py
                             self.player.movetimer = 0
-                            self.mapgui.update_background()
+                            #self.mapgui.update_background()
                 
             else:
                 self.player.movetimer += 1
                 self.player.loop_animation()
 
-                self.mapgui.update_background()
+                #self.mapgui.update_background()
 
                 if self.player.movetimer == MOVETIMER - 1:
-                    msg, action = self.cmap.grid[(self.player.x, self.player.y)].effect_stand_on()
-                    if msg:
-                        self.mapgui.message(msg)
+                    for tile in self.cmap.grid[(self.player.x, self.player.y)]:
+                        msg, action = tile.effect_stand_on()
+                        if msg:
+                            self.mapgui.message(msg)
 
-                    if action == "HEAL":
-                        for p in self.player.team:
-                            p.full_heal()
-                    elif type(action) == tuple and action[0] == "BATTLE":
-                        wild = Player() # TODO: move this to init
-                        wild.name = "Wild pokemon"
-                        wild_pokemon = Pokemon(action[2], action[1])
-                        wild.add_to_team(wild_pokemon)
-                        b = battle.Battle(self.screen, self.player, wild, self.clock, self.cmap.type) 
-                        self.mapgui.message(b.fight())
-                    elif type(action) == tuple and action[0] == "WARP":
-                        (x,y), self.cmap = self.load_map(action[1])
-                        self.player.x, self.player.y = x, y
-                        self.mapgui = gui.WORLDGUI(self.screen, self.player)
-                        self.mapgui.map = self.cmap
-                        self.mapgui.init_background()
-                        self.mapgui.update_background()
-                        self.mapgui.draw_screen()
+                        if action == "HEAL":
+                            for p in self.player.team:
+                                p.full_heal()
+                        elif type(action) == tuple and action[0] == "BATTLE":
+                            wild = Player() # TODO: move this to init
+                            wild.name = "Wild pokemon"
+                            wild_pokemon = Pokemon(action[2], action[1])
+                            wild.add_to_team(wild_pokemon)
+                            b = battle.Battle(self.screen, self.player, wild, self.clock, self.cmap.type) 
+                            self.mapgui.message(b.fight())
+                        elif type(action) == tuple and action[0] == "WARP":
+                            (x,y), self.cmap = self.load_map(action[1])
+                            self.player.x, self.player.y = x, y
+                            self.mapgui = gui.WORLDGUI(self.screen, self.player)
+                            self.mapgui.map = self.cmap
+                            self.mapgui.init_background()
+                            #self.mapgui.update_background()
+                            self.mapgui.draw_screen()
             
             if self.player.movetimer == MOVETIMER - 1:
                 if keys[K_z]:
@@ -180,7 +181,7 @@ class Game(object):
         x = self.player.x + tx
         y = self.player.y + ty
 
-        for obj in self.cmap.NPCs + self.cmap.objects:
+        for obj in self.cmap.NPCs + [o for o in self.cmap.grid[(x,y)] if isinstance(o, MapObject)]:
             if obj.x == x and obj.y == y and hasattr(obj, "interact_with"):
                 if hasattr(obj, "facing"):
                     obj.facing = -1 * tx, -1 * ty

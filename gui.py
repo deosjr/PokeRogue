@@ -167,14 +167,15 @@ class BATTLEGUI(GUI):
 
 class WORLDGUI(GUI):
 
-    def __init__(self, screen, player):
+    def __init__(self, screen, player, cmap):
         super(WORLDGUI, self).__init__(screen)
         self.player = player
-        self.background = pygame.Surface(self.screen.get_size())
-        self.background = self.background.convert()    
+        #self.background = pygame.Surface(self.screen.get_size())
+        #self.background = self.background.convert()    
         self.background_floor = pygame.Surface((self.sx + CELL_WIDTH, self.sy + CELL_HEIGHT))    
         self.background_floor = self.background_floor.convert() 
-        self.map = None
+        self.map = cmap
+        self.init_background()
 
     def init_background(self):
         self.background_floor.fill((255, 255, 255))
@@ -187,13 +188,12 @@ class WORLDGUI(GUI):
 
 
     # KEEP PLAYER AT (GRIDN_X-1)/2, (GRIDN_Y-1)/2
-    def update_background(self):
+    def draw_screen(self, message=False):
         
         # TODO: get this from player object 
         xf, yf = self.player.facing
-        timer = (MOVETIMER - self.player.movetimer)
+        timer = (MOVETIMER-1 - self.player.movetimer)
         rx, ry = timer * xf, timer * yf
-
         bx = rx
         by = ry
         if rx > 0:
@@ -201,7 +201,7 @@ class WORLDGUI(GUI):
         if ry > 0:
             by = -(CELL_HEIGHT - ry)
 
-        self.background.blit(self.background_floor, (bx, by))
+        self.screen.blit(self.background_floor, (bx, by))
 
         for j in range(-1, GRIDN_Y + 1):
 
@@ -221,46 +221,33 @@ class WORLDGUI(GUI):
                         cell = self.map.grid[(xp, yp)]
 
                     if cell:
-                        img, r, coordinates = cell.get_image(x, y, xp, yp)
-                        if img:
-                            self.background.blit(img, r, coordinates)
+                        for tile in cell:
+                            img, r, coordinates = tile.get_image(x, y, xp, yp)
+                            if img:
+                                self.screen.blit(img, r, coordinates)
 
                     else:
                         img, r, coordinates = self.map.filler.get_image(x, y, xp, yp)
                         if img:
-                            self.background.blit(img, r, coordinates)
+                            self.screen.blit(img, r, coordinates)
 
+                # This might be horribly inefficient
+                for npc in self.map.NPCs:
+                    if self.onscreen(npc) and (xp, yp) == (npc.x, npc.y): 
+                        xf, yf = npc.facing
+                        timer = (MOVETIMER - npc.movetimer)
+                        x = CELL_WIDTH * (npc.x - self.player.x + OFFSET_X) + rx - xf * timer
+                        y = CELL_HEIGHT * (npc.y - self.player.y + OFFSET_Y) + ry - yf * timer
+                        img, r, coordinates = npc.get_image(x, y)
+                        self.screen.blit(img, r, coordinates)
 
-    def draw_screen(self, message=False):
+                # TODO: actually fix occlusion for player
+                if yp == self.player.y + 1:# and i == -1:
         
-        # TODO: get this from player object 
-        xf, yf = self.player.facing
-        timer = (MOVETIMER-1 - self.player.movetimer)
-        rx, ry = timer * xf, timer * yf
-
-        self.screen.blit(self.background, (0, 0))
-
-        # TODO: redundant? i.e. for x in npcs + objects ?
-        for npc in self.map.NPCs:
-            if self.onscreen(npc): 
-                xf, yf = npc.facing
-                timer = (MOVETIMER - npc.movetimer)
-                x = CELL_WIDTH * (npc.x - self.player.x + OFFSET_X) + rx - xf * timer
-                y = CELL_HEIGHT * (npc.y - self.player.y + OFFSET_Y) + ry - yf * timer
-                img, r, coordinates = npc.get_image(x, y)
-                self.screen.blit(img, r, coordinates)
-
-        for obj in self.map.objects:
-            if self.onscreen(obj):
-                x = CELL_WIDTH * (obj.x - self.player.x + OFFSET_X)  + rx
-                y = CELL_HEIGHT * (obj.y - self.player.y + OFFSET_Y)  + ry
-                img, r, coordinates = obj.get_image(x, y, obj.x, obj.y)
-                self.screen.blit(img, r, coordinates)
-        
-        img, r, coordinates = self.player.get_image(True)
-        r = pygame.Rect(OFFSET_X * CELL_WIDTH, OFFSET_Y * CELL_HEIGHT - CELL_HEIGHT/2, CELL_WIDTH, CELL_HEIGHT)
-        
-        self.screen.blit(self.player.image, r, coordinates)
+                    img, r, coordinates = self.player.get_image(True)
+                    r = pygame.Rect(OFFSET_X * CELL_WIDTH, OFFSET_Y * CELL_HEIGHT - CELL_HEIGHT/2, CELL_WIDTH, CELL_HEIGHT)
+                    
+                    self.screen.blit(self.player.image, r, coordinates)
         pygame.display.flip()
 
     def onscreen(self, obj):

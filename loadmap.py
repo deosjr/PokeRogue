@@ -56,7 +56,7 @@ def load_map(identifier=0):
         joy = SisterJoy(11,12)
         joy.image, _ = gui.load_image(os.path.join("Graphics", "Characters", "NPC 16.png"), -1)
         m.add_player(joy)
-        m.grid[(10,14)] = m.heal
+        m.grid[(10,14)] = [m.heal]
         return (10, 13), m
         
     elif identifier == 1:
