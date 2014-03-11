@@ -269,6 +269,48 @@ class WORLDGUI(GUI):
                 return True
         return False 
 
+    def party_screen(self):
+        self.draw_screen()
+        message_box = pygame.Rect(2/16.0 * self.sx, 1.5/12.0 * self.sy, 12/16.0 * self.sx, 9/12.0 * self.sy)
+        pygame.draw.rect(self.screen, pygame.Color("WHITE"), message_box, 0)
+        pygame.display.flip()
+        for i, p in enumerate(self.player.team):
+            if not p:
+                break
+            self.draw_text(p.name + " - LVL." + str(p.level), 2.5/16.0 * self.sx, (1.5*i + 2.0) / 12.0 * self.sy)
+            pygame.display.flip()
+        numbers = set([])
+        time.sleep(0.2)
+        while 1:
+            if pygame.event.get(pygame.QUIT): 
+                return
+            pygame.event.pump()
+
+            keys = pygame.key.get_pressed()
+            if keys[K_ESCAPE] or keys[K_p]:
+                break
+            elif keys[K_1]:
+                numbers.add(1)
+            elif keys[K_2]:
+                numbers.add(2)
+            elif keys[K_3]:
+                numbers.add(3)
+            elif keys[K_4]:
+                numbers.add(4)
+            elif keys[K_5]:
+                numbers.add(5)
+            elif keys[K_6]:
+                numbers.add(6)
+            if len(numbers) == 2:
+                [x,y] = map(lambda x: x-1, list(numbers))
+                numbers = set([])
+                if self.player.team[x] and self.player.team[y]:
+                    temp = self.player.team[x]
+                    self.player.team[x] = self.player.team[y]
+                    self.player.team[y] = temp
+        time.sleep(0.2)
+
+
     def eye_contact(self):
 
         for npc in self.map.NPCs:

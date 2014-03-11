@@ -17,9 +17,7 @@ import sys
 
 class Game(object):
 
-    def __init__(self):
-
-        self.game_logic()
+    #def __init__(self):
 
     def game_logic(self):
 
@@ -32,16 +30,22 @@ class Game(object):
         self.player.name = "You"
         img,_ = gui.load_image(os.path.join("Graphics","Characters","trchar071.png"), -1)
         self.player.image = img
-        """
+        
         ours = Pokemon(1, "SQUIRTLE")
         self.player.add_to_team(ours)
         ours2 = Pokemon(1, "CHARMANDER")
         self.player.add_to_team(ours2)
-        ours3 = Pokemon(15, "BULBASAUR")
+        ours3 = Pokemon(1, "BULBASAUR")
         self.player.add_to_team(ours3)
-        """
+        ours4 = Pokemon(15, "SQUIRTLE")
+        self.player.add_to_team(ours4)
+        ours5 = Pokemon(15, "CHARMANDER")
+        self.player.add_to_team(ours5)
+        ours6 = Pokemon(15, "BULBASAUR")
+        self.player.add_to_team(ours6)
+        
         self.maps = {}
-        (x,y), self.cmap = self.load_map(1)
+        (x,y), self.cmap = self.load_map(0)
         self.player.x, self.player.y = x, y
         self.mapgui = gui.WORLDGUI(self.screen, self.player)
         self.mapgui.map = self.cmap
@@ -139,8 +143,11 @@ class Game(object):
                         self.mapgui.update_background()
                         self.mapgui.draw_screen()
             
-            if keys[K_z] and self.player.movetimer == MOVETIMER - 1:
-                self.interact()
+            if self.player.movetimer == MOVETIMER - 1:
+                if keys[K_z]:
+                    self.interact()
+                elif keys[K_p]:
+                    self.mapgui.party_screen()
 
             #if self.player.black_out():
             #    break
@@ -206,3 +213,4 @@ class Game(object):
 if __name__ == '__main__':
 
     game = Game()
+    game.game_logic()
